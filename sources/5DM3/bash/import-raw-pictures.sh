@@ -73,8 +73,11 @@ function import_CR2()
 	[[ -d ${dst_path}/${directory} ]] || mkdir -p ${dst_path}/${directory}
 	if [[ ! -f ${dst_path}/${directory}/${file} ]]
 	then
-	    md5sum ${org_file} > ${dst_path}/${directory}/${file}.md5
-	    sed -i "s|${org_file}|${dst_path}/${directory}/${file}|" ${dst_path}/${directory}/${file}.md5
+	    ${md5sum_cmd} ${org_file} > ${dst_path}/${directory}/${file}.md5.org
+	    sed -e "s|${org_file}|${dst_path}/${directory}/${file}|" \
+		${dst_path}/${directory}/${file}.md5.org > ${dst_path}/${directory}/${file}.md5
+
+	    rm ${dst_path}/${directory}/${file}.md5.org
 	    
 	    cp ${org_file} ${dst_path}/${directory}/${file}
 	fi
@@ -88,6 +91,18 @@ function import_CR2()
 # usage du script et des vérifications sur les paramètres passés.
 # 
 [[ $# -eq 2 ]] || exit 1
+
+#
+# Guess if this is a Linux or Mac box, compute md5sum command accordingly.
+#
+case $(uname -s) in
+Darwin)
+	md5sum_cmd="md5 -r"
+	;;
+*)
+	md5sum_cmd=md5sum
+	;;
+esac
 
 #
 # Import des images brutes.
